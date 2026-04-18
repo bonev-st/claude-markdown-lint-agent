@@ -70,9 +70,19 @@ Three invariants the loop relies on:
   be mirrored in both.
 - The two installers (`install-to-user-claude.sh` / `.ps1`) are likewise
   parallel — if you add a file under `.claude/`, add a copy step to both.
+- The two uninstallers (`uninstall-from-user-claude.sh` / `.ps1`) must stay
+  in lockstep with the installers: if the installer adds a file or changes
+  the `PostToolUse` command string, the uninstaller must match. The command
+  string used for idempotency and for removal is literally `$HOME`-prefixed
+  (the shell expands it at runtime) — do not pre-expand it in the script.
 - `.claude/settings.template.json` documents the exact hook-entry shape the
   installers write. If the installer's generated entry changes, update the
   template too.
+- PowerShell compatibility: the hook runs under `shell: "powershell"`, which
+  on Windows resolves to Windows PowerShell 5.1. `ConvertFrom-Json -Depth`
+  was added in PS 6.2, so every use in `.ps1` files must be guarded by
+  `if ($PSVersionTable.PSVersion.Major -ge 6)` — otherwise the hook and
+  installer break on stock Windows 11.
 - Markdown files in this repo (notably `README.md`) are themselves subject to
   the guardian when the hook is installed. The hook excludes `.claude/*`, so
   rule-summary edits are safe, but edits to `README.md` or this file will

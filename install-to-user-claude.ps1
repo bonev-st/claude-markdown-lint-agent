@@ -7,6 +7,10 @@ $repoRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sourceClaudeDir = Join-Path $repoRoot ".claude"
 $userClaudeDir = Join-Path $HOME ".claude"
 
+if (-not (Get-Command claude -ErrorAction SilentlyContinue)) {
+    Write-Warning "claude CLI was not found on PATH. The hook will fail until Claude Code is installed and 'claude' is reachable."
+}
+
 New-Item -ItemType Directory -Force -Path $userClaudeDir | Out-Null
 New-Item -ItemType Directory -Force -Path (Join-Path $userClaudeDir "agents") | Out-Null
 New-Item -ItemType Directory -Force -Path (Join-Path $userClaudeDir "hooks") | Out-Null
@@ -23,7 +27,13 @@ $settingsPath = Join-Path $userClaudeDir "settings.json"
 $hookCommand = "& `"$HOME\.claude\hooks\auto-fix-markdown.ps1`""
 
 if (Test-Path -LiteralPath $settingsPath) {
-    $settings = Get-Content -Raw -LiteralPath $settingsPath | ConvertFrom-Json -Depth 100
+    Copy-Item -LiteralPath $settingsPath -Destination "$settingsPath.bak" -Force
+    $rawSettings = Get-Content -Raw -LiteralPath $settingsPath
+    if ($PSVersionTable.PSVersion.Major -ge 6) {
+        $settings = $rawSettings | ConvertFrom-Json -Depth 100
+    } else {
+        $settings = $rawSettings | ConvertFrom-Json
+    }
 } else {
     $settings = [pscustomobject]@{}
 }
@@ -67,4 +77,5 @@ $settings | ConvertTo-Json -Depth 100 | Set-Content -LiteralPath $settingsPath -
 Write-Host "Installed markdown-guardian to $userClaudeDir"
 Write-Host "Agent: $HOME\.claude\agents\markdown-guardian.md"
 Write-Host "Hook : $HOME\.claude\hooks\auto-fix-markdown.ps1"
-Write-Host "Settings updated: $settingsPath"
+Write-Host "Settings updated: $settingsPath (backup at $settingsPath.bak if it already existed)"
+Write-Host "Verify: edit any .md file in a Claude Code session; status line should show 'markdown-guardian: checking Markdown files'."

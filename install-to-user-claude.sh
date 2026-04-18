@@ -6,6 +6,17 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source_claude_dir="${repo_root}/.claude"
 user_claude_dir="${HOME}/.claude"
 
+if ! command -v python3 >/dev/null 2>&1; then
+  echo "error: python3 is required by the installer and the hook." >&2
+  echo "       install python3 and re-run this script." >&2
+  exit 1
+fi
+
+if ! command -v claude >/dev/null 2>&1; then
+  echo "warning: claude CLI was not found on PATH." >&2
+  echo "         the hook will fail until Claude Code is installed and 'claude' is reachable." >&2
+fi
+
 mkdir -p \
   "${user_claude_dir}/agents" \
   "${user_claude_dir}/hooks" \
@@ -23,6 +34,7 @@ chmod +x "${user_claude_dir}/hooks/auto-fix-markdown.sh"
 settings_path="${user_claude_dir}/settings.json"
 
 if [[ -f "${settings_path}" ]]; then
+  cp "${settings_path}" "${settings_path}.bak"
   settings_json="$(cat "${settings_path}")"
 else
   settings_json='{}'
@@ -70,6 +82,7 @@ print(json.dumps(settings, indent=2))
 printf '%s\n' "${updated_json}" > "${settings_path}"
 
 echo "Installed markdown-guardian to ${user_claude_dir}"
-echo "Agent: ${HOME}/.claude/agents/markdown-guardian.md"
-echo "Hook : ${HOME}/.claude/hooks/auto-fix-markdown.sh"
-echo "Settings updated: ${settings_path}"
+echo "Agent:    ${HOME}/.claude/agents/markdown-guardian.md"
+echo "Hook:     ${HOME}/.claude/hooks/auto-fix-markdown.sh"
+echo "Settings: ${settings_path} (backup at ${settings_path}.bak if it already existed)"
+echo "Verify:   edit any .md file in a Claude Code session; status line should show 'markdown-guardian: checking Markdown files'."

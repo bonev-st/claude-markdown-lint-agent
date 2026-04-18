@@ -13,7 +13,11 @@ if ([string]::IsNullOrWhiteSpace($rawInput)) {
 }
 
 try {
-    $payload = $rawInput | ConvertFrom-Json -Depth 100
+    if ($PSVersionTable.PSVersion.Major -ge 6) {
+        $payload = $rawInput | ConvertFrom-Json -Depth 100
+    } else {
+        $payload = $rawInput | ConvertFrom-Json
+    }
 } catch {
     Write-Error "markdown-guardian: invalid hook JSON input"
     exit 0
