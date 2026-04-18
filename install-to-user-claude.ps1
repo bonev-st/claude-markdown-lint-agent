@@ -14,12 +14,15 @@ if (-not (Get-Command claude -ErrorAction SilentlyContinue)) {
 New-Item -ItemType Directory -Force -Path $userClaudeDir | Out-Null
 New-Item -ItemType Directory -Force -Path (Join-Path $userClaudeDir "agents") | Out-Null
 New-Item -ItemType Directory -Force -Path (Join-Path $userClaudeDir "hooks") | Out-Null
+New-Item -ItemType Directory -Force -Path (Join-Path $userClaudeDir "hooks\lib") | Out-Null
 New-Item -ItemType Directory -Force -Path (Join-Path $userClaudeDir "reference") | Out-Null
 
 Copy-Item -LiteralPath (Join-Path $sourceClaudeDir "agents\markdown-guardian.md") `
     -Destination (Join-Path $userClaudeDir "agents\markdown-guardian.md") -Force
 Copy-Item -LiteralPath (Join-Path $sourceClaudeDir "hooks\auto-fix-markdown.ps1") `
     -Destination (Join-Path $userClaudeDir "hooks\auto-fix-markdown.ps1") -Force
+Copy-Item -LiteralPath (Join-Path $sourceClaudeDir "hooks\lib\extract-markdown-paths.ps1") `
+    -Destination (Join-Path $userClaudeDir "hooks\lib\extract-markdown-paths.ps1") -Force
 Copy-Item -LiteralPath (Join-Path $sourceClaudeDir "reference\markdown-rules-summary.md") `
     -Destination (Join-Path $userClaudeDir "reference\markdown-rules-summary.md") -Force
 

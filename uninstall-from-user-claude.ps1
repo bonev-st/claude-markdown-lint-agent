@@ -9,8 +9,13 @@ $hookCommand = "& `"$HOME\.claude\hooks\auto-fix-markdown.ps1`""
 
 Remove-Item -LiteralPath (Join-Path $userClaudeDir "agents\markdown-guardian.md") -Force -ErrorAction SilentlyContinue
 Remove-Item -LiteralPath (Join-Path $userClaudeDir "hooks\auto-fix-markdown.ps1") -Force -ErrorAction SilentlyContinue
+Remove-Item -LiteralPath (Join-Path $userClaudeDir "hooks\lib\extract-markdown-paths.ps1") -Force -ErrorAction SilentlyContinue
+$libDir = Join-Path $userClaudeDir "hooks\lib"
+if ((Test-Path -LiteralPath $libDir) -and -not (Get-ChildItem -LiteralPath $libDir -Force)) {
+    Remove-Item -LiteralPath $libDir -Force -ErrorAction SilentlyContinue
+}
 Remove-Item -LiteralPath (Join-Path $userClaudeDir "reference\markdown-rules-summary.md") -Force -ErrorAction SilentlyContinue
-Write-Host "Removed markdown-guardian agent, hook, and reference from $userClaudeDir."
+Write-Host "Removed markdown-guardian agent, hook, extractor, and reference from $userClaudeDir."
 
 if (-not (Test-Path -LiteralPath $settingsPath)) {
     Write-Host "No $settingsPath; nothing further to do."

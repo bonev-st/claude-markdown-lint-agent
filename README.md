@@ -9,16 +9,20 @@ which checks and fixes the file against a shared rule summary.
 ## What is included
 
 - `.claude/agents/markdown-guardian.md` — the reusable subagent definition.
+  Its `tools:` list is the single source of truth for what the agent is
+  allowed to do.
 - `.claude/hooks/auto-fix-markdown.sh` — `PostToolUse` hook for bash
   (Linux, macOS, Git Bash, WSL).
 - `.claude/hooks/auto-fix-markdown.ps1` — `PostToolUse` hook for PowerShell
   (Windows).
-- `.claude/reference/markdown-rules-summary.md` — the rule summary both the
-  hook prompt and the agent read. This is the single place to edit the rules.
-- `.claude/settings.template.json` — reference shape of the `PostToolUse`
-  entry the installers write into `~/.claude/settings.json` (informational).
+- `.claude/hooks/lib/extract-markdown-paths.{py,ps1}` — the extractor used
+  by each hook to pull `.md` / `.markdown` paths from the tool payload.
+  Callable standalone for testing.
+- `.claude/reference/markdown-rules-summary.md` — the rule summary the
+  agent reads. Has a `version:` field; bump it when the rules change.
 - `install-to-user-claude.{sh,ps1}` — platform-specific installers.
 - `uninstall-from-user-claude.{sh,ps1}` — platform-specific uninstallers.
+- `tests/` — fixture-based tests for both extractors.
 
 ## How it works
 
@@ -131,6 +135,23 @@ a 300 s timeout). That adds per-edit latency and API usage. If you bulk-edit
 many Markdown files, expect both to add up. Set
 `MARKDOWN_GUARDIAN_ACTIVE=1` for the duration of a bulk operation if you
 want to skip the hook.
+
+## Run the tests
+
+The path extractors on both platforms are driven by fixtures under
+`tests/hook-payloads/`. Run:
+
+```bash
+bash tests/test-walker.sh
+```
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tests\test-walker.ps1
+```
+
+Both are expected to print `N passed, 0 failed`. Run them whenever you
+change either hook, either extractor, or the set of payload fields the
+walker recognises.
 
 ## Copy to another computer
 

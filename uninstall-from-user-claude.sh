@@ -8,8 +8,10 @@ hook_command='"$HOME/.claude/hooks/auto-fix-markdown.sh"'
 
 rm -f "${user_claude_dir}/agents/markdown-guardian.md"
 rm -f "${user_claude_dir}/hooks/auto-fix-markdown.sh"
+rm -f "${user_claude_dir}/hooks/lib/extract-markdown-paths.py"
+rmdir "${user_claude_dir}/hooks/lib" 2>/dev/null || true
 rm -f "${user_claude_dir}/reference/markdown-rules-summary.md"
-echo "Removed markdown-guardian agent, hook, and reference from ${user_claude_dir}."
+echo "Removed markdown-guardian agent, hook, extractor, and reference from ${user_claude_dir}."
 
 if [[ ! -f "${settings_path}" ]]; then
   echo "No ${settings_path}; nothing further to do."

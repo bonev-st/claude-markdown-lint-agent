@@ -1,0 +1,11 @@
+{
+  "hook_event_name": "PostToolUse",
+  "tool_name": "MultiEdit",
+  "tool_input": {
+    "file_path": "notes/design.markdown",
+    "edits": [
+      { "old_string": "# one", "new_string": "# 1" },
+      { "old_string": "# two", "new_string": "# 2" }
+    ]
+  }
+}

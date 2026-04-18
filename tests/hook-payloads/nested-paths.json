@@ -1,0 +1,13 @@
+{
+  "hook_event_name": "PostToolUse",
+  "tool_name": "HypotheticalMulti",
+  "tool_input": {
+    "targets": {
+      "paths": ["a.md", "b.py", "c.markdown"],
+      "meta": {
+        "file_path": "nested/inside.md"
+      }
+    },
+    "other": "unrelated.md"
+  }
+}

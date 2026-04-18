@@ -19,13 +19,15 @@ fi
 
 mkdir -p \
   "${user_claude_dir}/agents" \
-  "${user_claude_dir}/hooks" \
+  "${user_claude_dir}/hooks/lib" \
   "${user_claude_dir}/reference"
 
 cp "${source_claude_dir}/agents/markdown-guardian.md" \
   "${user_claude_dir}/agents/markdown-guardian.md"
 cp "${source_claude_dir}/hooks/auto-fix-markdown.sh" \
   "${user_claude_dir}/hooks/auto-fix-markdown.sh"
+cp "${source_claude_dir}/hooks/lib/extract-markdown-paths.py" \
+  "${user_claude_dir}/hooks/lib/extract-markdown-paths.py"
 cp "${source_claude_dir}/reference/markdown-rules-summary.md" \
   "${user_claude_dir}/reference/markdown-rules-summary.md"
 
