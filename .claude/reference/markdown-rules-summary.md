@@ -4,11 +4,10 @@ version: 2
 
 # Markdown Rules Summary
 
-This file is derived from the user's `Rules.md` (the markdownlint rule
-reference, MD001–MD060) and is intended for the `markdown-guardian`
-Claude Code subagent. The `version:` field above is the authoritative
-rule-summary version; bump it whenever the rules below change so agents
-can report which version they applied.
+This file is intended for the `markdown-guardian` Claude Code subagent.
+The `version:` field above is the authoritative rule-summary version;
+bump it whenever the rules below change so agents can report which
+version they applied.
 
 ## Purpose
 
