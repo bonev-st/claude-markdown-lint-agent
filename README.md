@@ -157,6 +157,12 @@ walker recognises.
 
 Copy this whole folder and run the matching installer there.
 
+## Attribution
+
+This project uses and adapts rule material from `Rules.md` in
+[DavidAnson/markdownlint](https://github.com/DavidAnson/markdownlint),
+which is licensed under the MIT License.
+
 ## Important note
 
 Anthropic user accounts do not currently sync custom Claude Code subagents
