@@ -41,8 +41,9 @@ hook never rewrite themselves.
 ## Requirements
 
 - **Claude Code CLI** installed and reachable on `PATH` (`claude --version`).
-- **Linux / macOS / WSL / Git Bash:** `bash` and `python3` (the hook and
-  installer both use Python 3 for JSON handling).
+- **Linux / macOS / WSL / Git Bash:** `bash` 3.2+ (works on the stock
+  macOS `/bin/bash`) and `python3` (the hook and installer both use
+  Python 3 for JSON handling).
 - **Windows:** Windows PowerShell 5.1+ (bundled with Windows 11) or
   PowerShell 7+.
 
@@ -138,20 +139,31 @@ want to skip the hook.
 
 ## Run the tests
 
-The path extractors on both platforms are driven by fixtures under
-`tests/hook-payloads/`. Run:
+Two test suites live under `tests/`:
+
+- `test-walker.{sh,ps1}` — unit tests for the path extractors, driven by
+  fixtures under `tests/hook-payloads/`.
+- `test-install-roundtrip.{sh,ps1}` — integration tests that install
+  into a temporary `HOME`, assert file layout and `settings.json`
+  shape, re-install for idempotency, uninstall, verify cleanup, and
+  confirm that unrelated user hooks / permissions survive plus that a
+  malformed `settings.json` is never overwritten.
+
+Run them with:
 
 ```bash
 bash tests/test-walker.sh
+bash tests/test-install-roundtrip.sh
 ```
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File tests\test-walker.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File tests\test-install-roundtrip.ps1
 ```
 
-Both are expected to print `N passed, 0 failed`. Run them whenever you
-change either hook, either extractor, or the set of payload fields the
-walker recognises.
+Each is expected to print `N passed, 0 failed`. Run them whenever you
+change a hook, an extractor, an installer / uninstaller, or the set of
+payload fields the walker recognises.
 
 ## Copy to another computer
 

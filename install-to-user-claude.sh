@@ -49,10 +49,16 @@ import sys
 
 hook_command = "\"$HOME/.claude/hooks/auto-fix-markdown.sh\""
 
+raw = sys.stdin.read()
 try:
-    settings = json.loads(sys.stdin.read() or "{}")
-except Exception:
-    settings = {}
+    settings = json.loads(raw) if raw.strip() else {}
+except json.JSONDecodeError as e:
+    sys.stderr.write(
+        "error: ~/.claude/settings.json is not valid JSON: %s\n"
+        "       original file is unchanged; backup at ~/.claude/settings.json.bak\n"
+        "       fix the JSON and re-run the installer\n" % e
+    )
+    sys.exit(1)
 
 hooks = settings.setdefault("hooks", {})
 post_tool_use = hooks.setdefault("PostToolUse", [])

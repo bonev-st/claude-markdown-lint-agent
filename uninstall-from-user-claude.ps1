@@ -5,7 +5,7 @@ $ErrorActionPreference = "Stop"
 
 $userClaudeDir = Join-Path $HOME ".claude"
 $settingsPath = Join-Path $userClaudeDir "settings.json"
-$hookCommand = "& `"$HOME\.claude\hooks\auto-fix-markdown.ps1`""
+$hookCommand = '& "$HOME\.claude\hooks\auto-fix-markdown.ps1"'
 
 Remove-Item -LiteralPath (Join-Path $userClaudeDir "agents\markdown-guardian.md") -Force -ErrorAction SilentlyContinue
 Remove-Item -LiteralPath (Join-Path $userClaudeDir "hooks\auto-fix-markdown.ps1") -Force -ErrorAction SilentlyContinue
@@ -22,17 +22,32 @@ if (-not (Test-Path -LiteralPath $settingsPath)) {
     exit 0
 }
 
+function Test-HasProperty {
+    param([object]$Node, [string]$Name)
+    if ($null -eq $Node) { return $false }
+    foreach ($p in $Node.PSObject.Properties) {
+        if ($p.Name -eq $Name) { return $true }
+    }
+    return $false
+}
+
 Copy-Item -LiteralPath $settingsPath -Destination "$settingsPath.bak" -Force
 
 $rawSettings = Get-Content -Raw -LiteralPath $settingsPath
-if ($PSVersionTable.PSVersion.Major -ge 6) {
-    $settings = $rawSettings | ConvertFrom-Json -Depth 100
-} else {
-    $settings = $rawSettings | ConvertFrom-Json
+try {
+    if ($PSVersionTable.PSVersion.Major -ge 6) {
+        $settings = $rawSettings | ConvertFrom-Json -Depth 100
+    } else {
+        $settings = $rawSettings | ConvertFrom-Json
+    }
+} catch {
+    Write-Error ("$settingsPath is not valid JSON: $($_.Exception.Message)`n" +
+        "Original file is unchanged; backup at $settingsPath.bak`n" +
+        "Fix the JSON and re-run the uninstaller.")
+    exit 1
 }
 
-if ($settings.PSObject.Properties.Name -contains "hooks" -and
-    $settings.hooks.PSObject.Properties.Name -contains "PostToolUse") {
+if ((Test-HasProperty $settings "hooks") -and (Test-HasProperty $settings.hooks "PostToolUse")) {
 
     $newGroups = @()
     foreach ($group in @($settings.hooks.PostToolUse)) {
@@ -49,7 +64,9 @@ if ($settings.PSObject.Properties.Name -contains "hooks" -and
         $settings.hooks.PSObject.Properties.Remove("PostToolUse")
     }
 
-    if ($settings.hooks.PSObject.Properties.Count -eq 0) {
+    $hooksPropCount = 0
+    foreach ($p in $settings.hooks.PSObject.Properties) { $hooksPropCount++ }
+    if ($hooksPropCount -eq 0) {
         $settings.PSObject.Properties.Remove("hooks")
     }
 }

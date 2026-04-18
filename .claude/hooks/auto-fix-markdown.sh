@@ -34,7 +34,10 @@ else
   reference_path="${project_reference_path}"
 fi
 
-mapfile -t markdown_paths < <(printf '%s' "${raw_input}" | python3 "${extractor}")
+markdown_paths=()
+while IFS= read -r line; do
+  [[ -n "${line}" ]] && markdown_paths+=("${line}")
+done < <(printf '%s' "${raw_input}" | python3 "${extractor}")
 
 if [[ "${#markdown_paths[@]}" -eq 0 ]]; then
   exit 0

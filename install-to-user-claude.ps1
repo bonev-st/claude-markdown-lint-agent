@@ -27,25 +27,42 @@ Copy-Item -LiteralPath (Join-Path $sourceClaudeDir "reference\markdown-rules-sum
     -Destination (Join-Path $userClaudeDir "reference\markdown-rules-summary.md") -Force
 
 $settingsPath = Join-Path $userClaudeDir "settings.json"
-$hookCommand = "& `"$HOME\.claude\hooks\auto-fix-markdown.ps1`""
+$hookCommand = '& "$HOME\.claude\hooks\auto-fix-markdown.ps1"'
+
+function Test-HasProperty {
+    param([object]$Node, [string]$Name)
+    if ($null -eq $Node) { return $false }
+    foreach ($p in $Node.PSObject.Properties) {
+        if ($p.Name -eq $Name) { return $true }
+    }
+    return $false
+}
 
 if (Test-Path -LiteralPath $settingsPath) {
     Copy-Item -LiteralPath $settingsPath -Destination "$settingsPath.bak" -Force
     $rawSettings = Get-Content -Raw -LiteralPath $settingsPath
-    if ($PSVersionTable.PSVersion.Major -ge 6) {
-        $settings = $rawSettings | ConvertFrom-Json -Depth 100
-    } else {
-        $settings = $rawSettings | ConvertFrom-Json
+    try {
+        if ($PSVersionTable.PSVersion.Major -ge 6) {
+            $settings = $rawSettings | ConvertFrom-Json -Depth 100
+        } else {
+            $settings = $rawSettings | ConvertFrom-Json
+        }
+    } catch {
+        Write-Error ("$settingsPath is not valid JSON: $($_.Exception.Message)`n" +
+            "Original file is unchanged; backup at $settingsPath.bak`n" +
+            "Fix the JSON and re-run the installer.")
+        exit 1
     }
+    if ($null -eq $settings) { $settings = [pscustomobject]@{} }
 } else {
     $settings = [pscustomobject]@{}
 }
 
-if (-not ($settings.PSObject.Properties.Name -contains "hooks")) {
+if (-not (Test-HasProperty $settings "hooks")) {
     $settings | Add-Member -MemberType NoteProperty -Name hooks -Value ([pscustomobject]@{})
 }
 
-if (-not ($settings.hooks.PSObject.Properties.Name -contains "PostToolUse")) {
+if (-not (Test-HasProperty $settings.hooks "PostToolUse")) {
     $settings.hooks | Add-Member -MemberType NoteProperty -Name PostToolUse -Value @()
 }
 

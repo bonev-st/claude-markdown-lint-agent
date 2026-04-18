@@ -33,7 +33,16 @@ import sys
 settings_path, hook_command = sys.argv[1], sys.argv[2]
 
 with open(settings_path) as f:
-    settings = json.load(f)
+    raw = f.read()
+try:
+    settings = json.loads(raw) if raw.strip() else {}
+except json.JSONDecodeError as e:
+    sys.stderr.write(
+        "error: %s is not valid JSON: %s\n"
+        "       original file is unchanged; backup at %s.bak\n"
+        "       fix the JSON and re-run the uninstaller\n" % (settings_path, e, settings_path)
+    )
+    sys.exit(1)
 
 hooks = settings.get("hooks", {})
 groups = hooks.get("PostToolUse", [])
