@@ -27,7 +27,8 @@ Copy-Item -LiteralPath (Join-Path $sourceClaudeDir "reference\markdown-rules-sum
     -Destination (Join-Path $userClaudeDir "reference\markdown-rules-summary.md") -Force
 
 $settingsPath = Join-Path $userClaudeDir "settings.json"
-$hookCommand = '& "$HOME\.claude\hooks\auto-fix-markdown.ps1"'
+$hookCommand = 'Set-ExecutionPolicy -Scope Process Bypass -Force; & "$HOME\.claude\hooks\auto-fix-markdown.ps1"'
+$hookCommandMarker = "auto-fix-markdown.ps1"
 
 function Test-HasProperty {
     param([object]$Node, [string]$Name)
@@ -66,31 +67,30 @@ if (-not (Test-HasProperty $settings.hooks "PostToolUse")) {
     $settings.hooks | Add-Member -MemberType NoteProperty -Name PostToolUse -Value @()
 }
 
-$alreadyExists = $false
+$filteredGroups = @()
 foreach ($group in @($settings.hooks.PostToolUse)) {
-    foreach ($hook in @($group.hooks)) {
-        if ($hook.command -eq $hookCommand) {
-            $alreadyExists = $true
+    $kept = @($group.hooks | Where-Object { $_.command -notlike "*$hookCommandMarker*" })
+    if ($kept.Count -gt 0) {
+        $group.hooks = $kept
+        $filteredGroups += $group
+    }
+}
+$settings.hooks.PostToolUse = $filteredGroups
+
+$newGroup = [pscustomobject]@{
+    matcher = "Write|Edit|MultiEdit"
+    hooks = @(
+        [pscustomobject]@{
+            type = "command"
+            shell = "powershell"
+            command = $hookCommand
+            timeout = 300
+            statusMessage = "markdown-guardian: checking Markdown files"
         }
-    }
+    )
 }
 
-if (-not $alreadyExists) {
-    $newGroup = [pscustomobject]@{
-        matcher = "Write|Edit|MultiEdit"
-        hooks = @(
-            [pscustomobject]@{
-                type = "command"
-                shell = "powershell"
-                command = $hookCommand
-                timeout = 300
-                statusMessage = "markdown-guardian: checking Markdown files"
-            }
-        )
-    }
-
-    $settings.hooks.PostToolUse = @($settings.hooks.PostToolUse) + $newGroup
-}
+$settings.hooks.PostToolUse = @($settings.hooks.PostToolUse) + $newGroup
 
 $settings | ConvertTo-Json -Depth 100 | Set-Content -LiteralPath $settingsPath -Encoding UTF8
 

@@ -95,10 +95,18 @@ Five invariants the loop relies on:
 - The two installers (`install-to-user-claude.{sh,ps1}`) are parallel — if
   you add a file under `.claude/`, add a copy step to both and a
   corresponding removal step to both uninstallers.
-- The uninstaller's hook-command string used for the `PostToolUse` removal
-  match is literally `$HOME`-prefixed (the shell expands it at runtime).
-  Do not pre-expand it, or the match will fail and the old entry will
-  linger in `settings.json`.
+- The installer and uninstaller both match existing `PostToolUse` entries
+  by substring (`auto-fix-markdown.ps1` / `auto-fix-markdown.sh`) rather
+  than full-command equality, so they stay idempotent across changes to
+  the registered command string (e.g. the execution-policy bypass
+  prefix). If you rename the hook script, update the marker in both
+  scripts.
+- The Windows hook command is registered with a
+  `Set-ExecutionPolicy -Scope Process Bypass -Force;` prefix so the
+  `.ps1` loads under a stock Restricted policy. Do not drop that prefix
+  — the hook runs under `shell: "powershell"`, which inherits the
+  machine default policy and would otherwise block the script before a
+  single line executes.
 - **PowerShell compatibility.** The hook runs under `shell: "powershell"`,
   which on Windows resolves to Windows PowerShell 5.1. `ConvertFrom-Json
   -Depth` was added in PS 6.2, so every use in `.ps1` files must be

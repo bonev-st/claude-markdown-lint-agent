@@ -5,7 +5,7 @@ $ErrorActionPreference = "Stop"
 
 $userClaudeDir = Join-Path $HOME ".claude"
 $settingsPath = Join-Path $userClaudeDir "settings.json"
-$hookCommand = '& "$HOME\.claude\hooks\auto-fix-markdown.ps1"'
+$hookCommandMarker = "auto-fix-markdown.ps1"
 
 Remove-Item -LiteralPath (Join-Path $userClaudeDir "agents\markdown-guardian.md") -Force -ErrorAction SilentlyContinue
 Remove-Item -LiteralPath (Join-Path $userClaudeDir "hooks\auto-fix-markdown.ps1") -Force -ErrorAction SilentlyContinue
@@ -51,7 +51,7 @@ if ((Test-HasProperty $settings "hooks") -and (Test-HasProperty $settings.hooks 
 
     $newGroups = @()
     foreach ($group in @($settings.hooks.PostToolUse)) {
-        $kept = @($group.hooks | Where-Object { $_.command -ne $hookCommand })
+        $kept = @($group.hooks | Where-Object { $_.command -notlike "*$hookCommandMarker*" })
         if ($kept.Count -gt 0) {
             $group.hooks = $kept
             $newGroups += $group
